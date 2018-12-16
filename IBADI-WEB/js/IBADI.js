@@ -1,7 +1,3 @@
-﻿
-
-
-
 var sp_svc = "IBADI.asmx/gspc_tbl";
 var sp_svc_table = "IBADI.asmx/gspc_tbl";
 var sp_svc_scalar = "IBADI.asmx/gspc";
@@ -116,6 +112,13 @@ function IB_runProc_with_paramvals(procName,paramswithvalues) {
     var pwv =JSON.stringify(paramswithvalues); 
     var result = getServiceDataJSON("IBADI.asmx/gspc_tbl", { procName: JSON.stringify(procName), paramsWithValues:JSON.stringify(pwv)});    
     return result;
+}
+
+function IB_runProc(procName, paramswithvalues) {
+    var pwv = JSON.stringify(paramswithvalues);
+    var result = getServiceDataJSON("IBADI.asmx/gspc_tbl", { procName: JSON.stringify(procName), paramsWithValues: JSON.stringify(pwv) });
+    var arr = JSON.parse(result.d);
+    return arr;
 }
 
 function IB_extract_first_item_from_result(result) {
