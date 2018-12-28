@@ -2,6 +2,7 @@ var sp_svc = "IBADI.asmx/gspc_tbl";
 var sp_svc_table = "IBADI.asmx/gspc_tbl";
 var sp_svc_scalar = "IBADI.asmx/gspc";
 
+
 //Generic routine for running services from our local webservice
 //Example:
 //If parameter is not required
@@ -10,13 +11,6 @@ var sp_svc_scalar = "IBADI.asmx/gspc";
 //If parameters are required - be sure that the parameter names match exactly
 //var result = getServiceDataJSON("WebServices/PCWorkbenchWebService.asmx/HelloWorld", { PID: "1303787" });
 function getServiceDataJSON(actionUrl, params, errorhandler) {
-    //console.log("...start getServiceDataJSON" + actionUrl + "; params=" + JSON.stringify(params));
-    //if (params != null)
-    //    console.info("calling " + actionUrl + " with params=" + JSON.stringify(params));
-    //else
-   //     console.info("calling " + actionUrl + " without params");
-    //var result;   
-    //console.log(params);
     $.ajax({
         type: "GET",
         async: false,
@@ -26,7 +20,7 @@ function getServiceDataJSON(actionUrl, params, errorhandler) {
         data: params,
         success: function (data) {
             if ((typeof data) == "string") {
-                console.log(data);
+                //console.log(data);
                 result = JSON.parse(data);
             } else {
                 result = data;
@@ -90,7 +84,7 @@ function IB_check_if_proc_exists(procName)
     var procName2 = "ibadi.usp_check_if_proc_exists";
     var paramsWithValues = JSON.stringify({ procName: procName });
     var result = getServiceDataJSON(sp_svc_table, { procName: JSON.stringify(procName2), paramsWithValues: JSON.stringify(paramsWithValues) });
-    console.log(result);
+    //console.log(result);
     if (  JSON.parse(result.d)[0].result == 1    ) {
         return true;
     } 
@@ -120,6 +114,50 @@ function IB_runProc(procName, paramswithvalues) {
     var arr = JSON.parse(result.d);
     return arr;
 }
+
+
+function IB_runProc2(procName, paramswithvalues) {
+    var outresult = null;
+    var data = new FormData();
+    data.append("procName", procName);
+    data.append("paramswithvalues", JSON.stringify(paramswithvalues));
+    var ajaxRequest = $.ajax({
+        type: "POST",
+        async: false,
+        contentType: "application/json; charset=utf-8",
+        dataType: "xml",
+        contentType: false,
+        url: "IBADI.asmx/gspc_tbls_large_params",
+        cache: false,
+        processData: false,
+        data: data,
+        context: "_canvas",
+        success: function (result) {
+            //console.log("OK-001");
+            outresult = JSON.parse(result.childNodes[0].innerHTML.replace(/],]/g, "]]"));
+            //console.log(outresult);
+            //console.log("OK-002");
+            
+            return result;
+        },
+        error: function (e) {
+            //console.log("ERROR-003");
+            //console.log(e);
+            //console.log("ERROR-004");
+            result = e.responseText;
+            result = result.replace("<?xml version=\"1.0\" encoding=\"utf-8\"?>", "");
+            result = result.replace("<string xmlns=\"http://IBADI.org/\">", "");
+            result = result.replace("</string>", "");
+            outresult = JSON.parse(result.replace(/],]/g, "]]"));
+            //console.log(result);
+            return e;
+        }
+    });
+
+    //Wont get result unles we set  async: false
+    return outresult;
+}
+
 
 function IB_extract_first_item_from_result(result) {
     return JSON.parse(result.d)[0].result

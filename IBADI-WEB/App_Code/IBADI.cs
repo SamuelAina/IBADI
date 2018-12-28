@@ -11,6 +11,8 @@ using System.Web.Services;
 using Newtonsoft.Json;
 
 using System.Net.Http;
+using System.IO;
+using System.Text;
 
 /// <summary>
 /// Summary description for IBADI
@@ -96,6 +98,32 @@ public class IBADI : System.Web.Services.WebService {
         }
     }
 
+    [WebMethod]
+    //[WebInvoke(Method = "POST", ResponseFormat = WebMessageFormat.Json, BodyStyle = WebMessageBodyStyle.Wrapped)]
+    public  string gspc_tbls_large_params()
+    {
+        try
+        {
+            string procName = HttpContext.Current.Request["procName"];
+            string paramsWithValues = HttpContext.Current.Request["paramsWithValues"];
+
+            var deserializer = new JavaScriptSerializer();
+            Dictionary<string, string> objParamsWithValues = deserializer.Deserialize<Dictionary<string, string>>(paramsWithValues);
+            List<KeyValuePair<string, object>> parameters = new List<KeyValuePair<string, object>>();
+            foreach (string k in objParamsWithValues.Keys)
+                parameters.Add(new KeyValuePair<string, object>(k.ToString(), objParamsWithValues[k].ToString()));
+
+
+            DataTableCollection dtResult = SqlDatabase.ExecuteProcedureReturnTables(SqlDatabase.WbConnectionString, procName, parameters);
+
+            return ToJsonString(dtResult);
+        }
+        catch (Exception c)
+        {
+            string err_msg = "{\"error\":\"Data not updated : $$Message$$\"}".Replace("$$Message$$", c.Message).Replace(System.Environment.NewLine, " ");
+            return err_msg;
+        }
+    }
 
     string RunSQLVariableParams(SqlCommand cmd)
     {
@@ -119,6 +147,42 @@ public class IBADI : System.Web.Services.WebService {
         string result = JsonConvert.SerializeObject(table);
         return result;
     }
+
+
+    public static string ToJsonString(DataTableCollection tables)
+    {
+        string result = "[";
+        foreach (DataTable table in tables)
+        {
+            result = result + ToJsonString(table) + ",";
+        }
+        result = result + "]";
+        return result;
+    }
+
+    public static Stream ToJson(String text)
+    {
+        string result = JsonConvert.SerializeObject(text);
+        byte[] resultBytes = Encoding.UTF8.GetBytes(result);
+        //WebOperationContext.Current.OutgoingResponse.ContentType = "application/json; charset=utf-8";
+        return new MemoryStream(resultBytes);
+    }
+
+    public static Stream ToJson(DataTableCollection tables)
+    {
+        foreach (DataTable table in tables)
+        {
+            foreach (DataColumn col in table.Columns)
+                col.ColumnName = col.ColumnName.Replace(" ", "");
+        }
+
+        string result = JsonConvert.SerializeObject(tables);
+
+        byte[] resultBytes = Encoding.UTF8.GetBytes(result);
+        WebOperationContext.Current.OutgoingResponse.ContentType = "application/json; charset=utf-8";
+        return new MemoryStream(resultBytes);
+    }
+
 }
 public class SqlDatabase
 {
@@ -218,6 +282,25 @@ public class SqlDatabase
             return ds.Tables[0];
         else
             return null;
+    }
+
+    public static DataTableCollection ExecuteProcedureReturnTables(string connName, string procedureName, List<KeyValuePair<string, object>> parameters)
+    {
+        SqlCommand cmd = new SqlCommand();
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.CommandText = procedureName;
+        if (parameters != null)
+            foreach (KeyValuePair<string, object> param in parameters)
+                if (param.Value.ToString().Length > 1000)
+                {
+                    cmd.Parameters.Add("@" + param.Key, SqlDbType.VarChar, -1).Value = param.Value.ToString();
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue(param.Key, param.Value);
+                }
+        DataSet ds = SqlDatabase.ExecuteQuery(connName, cmd);
+        return ds.Tables;
     }
 
     public static string ExecuteProcedureForScalarString(string connName, string procedureName, List<KeyValuePair<string, object>> parameters)
