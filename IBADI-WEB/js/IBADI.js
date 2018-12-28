@@ -102,21 +102,16 @@ function getParameterByName(name, url) {
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 
-function IB_runProc_with_paramvals(procName,paramswithvalues) {   
-    var pwv =JSON.stringify(paramswithvalues); 
-    var result = getServiceDataJSON("IBADI.asmx/gspc_tbl", { procName: JSON.stringify(procName), paramsWithValues:JSON.stringify(pwv)});    
-    return result;
-}
+
+//function IB_runProc(procName, paramswithvalues) {
+//    var pwv = JSON.stringify(paramswithvalues);
+//    var result = getServiceDataJSON("IBADI.asmx/gspc_tbl", { procName: JSON.stringify(procName), paramsWithValues: JSON.stringify(pwv) });
+//    var arr = JSON.parse(result.d);
+//    return arr;
+//}
+
 
 function IB_runProc(procName, paramswithvalues) {
-    var pwv = JSON.stringify(paramswithvalues);
-    var result = getServiceDataJSON("IBADI.asmx/gspc_tbl", { procName: JSON.stringify(procName), paramsWithValues: JSON.stringify(pwv) });
-    var arr = JSON.parse(result.d);
-    return arr;
-}
-
-
-function IB_runProc2(procName, paramswithvalues) {
     var outresult = null;
     var data = new FormData();
     data.append("procName", procName);
