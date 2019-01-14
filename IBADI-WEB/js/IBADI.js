@@ -19,6 +19,25 @@ function IB_runProc_async(procName, paramswithvalues, callback) {
     return result
 }
 
+function IB_runSvc_async(requestUrl,  callback) {
+    var result;
+    _syn_path = document.URL.split("/");
+    _syn_path.pop();
+    _syn_path = _syn_path.join("/");
+
+    var wkrw = new Worker(_syn_path + "/js/_syn_w.js");
+
+    wkrw.onmessage = function (e) {
+        result = e.data;
+        if (callback) {
+            callback(result);
+        }
+        wkrw.terminate();
+    }
+    wkrw.postMessage({ syn_path: _syn_path, requestUrl: requestUrl });
+    return result
+}
+
 
 function IB_renderHTML(fields, containerToAppendTo) {
     containerToAppendTo.css("float:right");
@@ -115,4 +134,43 @@ function IB_start_page() {
     if (proc_name) {
         IB_renderFromProc(proc_name, "{}", "_canvas");
     }
+}
+
+
+
+function IB_runSvc(url) {
+
+    var outresult = null;
+    var data = new FormData();
+    data.append("url", url);
+
+    var ajaxRequest = $.ajax({
+        type: "POST",
+        async: false,
+        contentType: "application/json; charset=utf-8",
+        dataType: "xml",
+        //contentType: false,
+        url: "IBADI.asmx/gtWb",
+        cache: false,
+        processData: false,
+        data: data,
+        context: "_canvas",
+        success: function (result) {
+            console.log("====001====");
+            //outresult = JSON.parse(result.childNodes[0].innerHTML.replace(/],]/g, "]]"));
+            return result;
+        },
+        error: function (e) {
+            console.log("====002====",e);
+            result = e.responseText;
+            result = result.replace("<?xml version=\"1.0\" encoding=\"utf-8\"?>", "");
+            result = result.replace("<string xmlns=\"http://IBADI.org/\">", "");
+            result = result.replace("</string>", "");
+            console.log(result);
+            //outresult = JSON.parse(result.replace(/],]/g, "]]"));
+            return result;
+        }
+    });
+    //Wont get result unles we set  async: false
+    return outresult;
 }
