@@ -8,11 +8,40 @@ using System.Web.Script.Serialization;
 using System.Web.Services;
 using Newtonsoft.Json;
 
+//using System.Net.Http;
+using System.Net;
+using System.IO;
+//using System.Web.Script.Services;
+
 [WebService(Namespace = "http://IBADI.org/")]
 [WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
 [System.ComponentModel.ToolboxItem(false)]
 [System.Web.Script.Services.ScriptService]
 public class IBADI : System.Web.Services.WebService {
+    [WebMethod]
+    public string gtWb()
+    {
+        try
+        {
+            string requestUrl = HttpContext.Current.Request["requestUrl"];
+            requestUrl = requestUrl.Replace("&amp;","&");
+            HttpWebRequest http = (HttpWebRequest)HttpWebRequest.Create(requestUrl);
+            HttpWebResponse response = (HttpWebResponse)http.GetResponse();
+            using (StreamReader sr = new StreamReader(response.GetResponseStream()))
+            {
+                string responseJson = sr.ReadToEnd();
+                return responseJson;
+            }
+        }
+        catch
+        {
+            return String.Empty;
+        }       
+    }
+
+
+
+
     [WebMethod]
     public string gspc_tbl(string procName, string paramsWithValues)
     {
@@ -62,6 +91,8 @@ public class IBADI : System.Web.Services.WebService {
             return err_msg;
         }
     }
+
+
 
     public static string ToJsonString(DataTable table)
     {
@@ -201,4 +232,6 @@ public class SqlDatabase
         DataSet ds = SqlDatabase.ExecuteQuery(connName, cmd);
         return ds.Tables;
     }
+
+
 }
