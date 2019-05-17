@@ -75,6 +75,50 @@ function IB_renderFromProc(procName, paramsWithValues,targetDiv)
     );
 }
 
+function  IB_doFileUpload(file_upload_input_tag_id,upload_progress_tag_id,progress_container_id, callback)
+{
+    $("#"+progress_container_id).css("visibility","visible");
+    var file_upload_element = document.getElementById(file_upload_input_tag_id);
+    if (file_upload_element.files.length == 0) {     
+        alert("please select image file");  
+    }else{   
+        var files = $("#file_upload").get(0).files;  
+        var data = new FormData();              
+        data.append("UploadedFile", files[0]);
+        var ajaxRequest = $.ajax({  
+            type: "POST",  
+            async: true,  
+            dataType: "xml",  
+            contentType: false,  
+  
+            url: "IBADI.asmx/processUploadedFile",  
+            cache: false,  
+            processData: false,  
+            data: data,  
+            xhr: function () {  
+                var xhr = $.ajaxSettings.xhr();  
+                xhr.upload.onprogress = function (evt) {   
+                    console.log(evt.loaded );         
+                    $("#" + upload_progress_tag_id).val(evt.loaded / evt.total * 100);  
+                };  
+                xhr.upload.onload = function () { console.log("Upload DONE!") };  
+                return xhr;  
+            },  
+				                           
+            success: function (result) {  
+                if (callback) {
+                    callback(result.getElementsByTagName("string")[0].innerHTML);
+                    $("#"+progress_container_id).css("visibility","hidden");
+                }
+            },  
+  
+            error: function (e) {  
+                $("#"+progress_container_id).css("visibility","hidden");
+                console.log("ERROR", e);  
+            }  
+        });  
+    }
+}
 
 function getParameterByName(name, url) {
     if (!url) url = window.location.href;
