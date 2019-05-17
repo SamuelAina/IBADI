@@ -114,6 +114,7 @@ public class IBADI : System.Web.Services.WebService {
         return result;
     }
     
+    [WebMethod]
     public string processUploadedFile()
     {
         string result = null;
