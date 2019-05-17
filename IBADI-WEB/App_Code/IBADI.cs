@@ -113,6 +113,38 @@ public class IBADI : System.Web.Services.WebService {
         result = result + "]";
         return result;
     }
+    
+    public string processUploadedFile()
+    {
+        string result = null;
+        try
+        {
+            if (HttpContext.Current.Request.Files.Count > 0)
+            {
+                // Get the uploaded image from the Files collection
+                var httpPostedFile = HttpContext.Current.Request.Files["UploadedFile"];
+                if (httpPostedFile != null)
+                {
+                    // Get the complete file path
+                    string fileName = Guid.NewGuid() + "";//httpPostedFile.FileName;
+                    var fileSavePath = Path.Combine(HttpContext.Current.Server.MapPath("~/Upload"), fileName);
+                    // Save the uploaded file to "UploadedFiles" folder
+                    httpPostedFile.SaveAs(fileSavePath + System.IO.Path.GetExtension(httpPostedFile.FileName));
+                    result = "Upload/" + fileName +  System.IO.Path.GetExtension(httpPostedFile.FileName);//fileSavePath;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            //return "{\"error\":\"Data not updated : $$Message$$\"}".Replace("$$Message$$", ex.Message.Replace("'", "")).Replace(System.Environment.NewLine, " ");
+            //this.Context.Response.Write(ex.Message.Replace("'", ""));
+            this.Context.Response.Write("<error>" + ex.Message.Replace("'", "") + "</error>");
+            return "<error>" + ex.Message.Replace("'", "") + "</error>";
+        }
+
+        //this.Context.Response.Write(result);
+        return result;
+    }    
 }
 public class SqlDatabase
 {
