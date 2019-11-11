@@ -27,8 +27,10 @@ function IB_runSvc_async(requestUrl,  callback) {
 
     var wkrw = new Worker(_syn_path + "/js/_syn_w.js");
 
-    wkrw.onmessage = function (e) {
+    wkrw.onmessage = function (e) {	
         result = e.data;
+		console.log("procName",procName);    
+		console.log("result",result);
         if (callback) {
             callback(result);
         }
@@ -51,12 +53,32 @@ function IB_renderHTML(fields, containerToAppendTo) {
    );
 }
 
+
+function IB_renderSCRIPT(fields, containerToAppendTo) {
+    $("#initialscript").remove();
+    console.log(fields);
+    containerToAppendTo.css("float:right");
+    fields.forEach(
+    function (item, index) {
+        if (!(typeof item.html === "undefined")) {           
+            console.log(item.html);
+            var sc = document.createElement("script");
+            sc.type = "text/javascript";
+            sc.innerHTML = item.html;
+            $("head").append(sc);
+            //IB_renderSCRIPT(s, $("#" + targetDiv));
+        }
+    }
+   );
+}
+
 function IB_renderFromProc(procName, paramsWithValues,targetDiv)
 {
     IB_runProc_async(
                 "ibadi.usp_check_if_proc_exists"
                 , { procName: procName }
                 , function (result) {
+				console.log("result",result);
                     if (result[0][0].result != "1") {
                         alert("proc does not exist in database - " + procName);
                         return;
@@ -65,10 +87,19 @@ function IB_renderFromProc(procName, paramsWithValues,targetDiv)
                                     , paramsWithValues = JSON.parse(paramsWithValues)
                                     , function (htmlresult) {
                                         h = htmlresult[0][0].html;
-                                        h = h.replace(/&lt;/g, "<");
-                                        h = h.replace(/&gt;/g, ">");
-                                        h = JSON.parse(h);
-                                        IB_renderHTML(h, $("#" + targetDiv));
+                                        if (h !== undefined) {
+                                            h = h.replace(/&lt;/g, "<");
+                                            h = h.replace(/&gt;/g, ">");
+                                            h = JSON.parse(h);
+                                            IB_renderHTML(h, $("#" + targetDiv));
+                                        }
+                                        s = htmlresult[0][0].script;
+                                        if (s !== undefined) {
+                                            s = s.replace(/&lt;/g, "<");
+                                            s = s.replace(/&gt;/g, ">");
+                                            s = JSON.parse(s);
+                                            IB_renderSCRIPT(s, $("#" + targetDiv));
+                                       }
                                     });
                     }
                 }
