@@ -18,6 +18,7 @@ using System.IO;
 [System.ComponentModel.ToolboxItem(false)]
 [System.Web.Script.Services.ScriptService]
 public class IBADI : System.Web.Services.WebService {
+
     [WebMethod]
     public string gtWb()
     {
@@ -113,7 +114,7 @@ public class IBADI : System.Web.Services.WebService {
         result = result + "]";
         return result;
     }
-    
+
     [WebMethod]
     public string processUploadedFile()
     {
