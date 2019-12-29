@@ -9,14 +9,10 @@ There's not much to it!
 4) create usp_check_if_proc_exists stored proc that tells the IBADI web service that a page proc exists
 5) create the fuction that serves the html to the IBADI service
 */
-USE MASTER
-CREATE DATABASE IBADI
-GO
-
-USER IBADI
-GO
 
 CREATE SCHEMA webpage
+GO
+CREATE SCHEMA [ibadi]
 GO
 
 create proc [ibadi].[usp_check_if_proc_exists]  
@@ -57,6 +53,3 @@ BEGIN
       RETURN  @html  
 END
 GO
-
-
-
